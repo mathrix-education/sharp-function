@@ -13,11 +13,10 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '10.x'
+      - name: Install dependencies
+        run: npm install
       - name: Compile with TypeScript compiler
-        run:
-          npm install
-          npm run build
-          cp package.json dist/package.json
+        run: npm run build && cp package.json dist/package.json
       - name: Upload build artifact
         uses: actions/upload-artifact@v1.0.0
         with:
