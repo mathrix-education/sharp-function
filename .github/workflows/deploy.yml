@@ -2,7 +2,7 @@ name: Deploy
 on:
   push:
     branches: ['*'] # Do not run on tags
-job:
+jobs:
   build:
     name: Build with Typescript
     runs-on: ubuntu-latest
