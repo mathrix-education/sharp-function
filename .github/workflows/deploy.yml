@@ -1,4 +1,7 @@
 name: Deploy
+on:
+  push:
+    branches: ['*'] # Do not run on tags
 job:
   build:
     name: Build with Typescript
