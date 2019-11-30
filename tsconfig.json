@@ -11,6 +11,6 @@
     ]
   },
   "include": [
-    "src/optimize.ts"
+    "src/index.ts"
   ]
 }
