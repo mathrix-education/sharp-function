@@ -22,11 +22,17 @@ jobs:
         with:
           name: build
           path: dist
-
   deploy:
     name: Deploy on Google Cloud Functions
     needs: [build]
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        bucket:
+          - cdn.mathrix.fr
+          - cdn.mathrixdrive.fr
+          - dev.cdn.mathrix.fr
+          - dev.cdn.mathrixdrive.fr
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v1.0.0
@@ -43,5 +49,5 @@ jobs:
           gcloud functions deploy sharp-function \
             --region=europe-west1 \
             --runtime nodejs10 \
-            --trigger-resource dev.cdn.mathrixdrive.fr \
+            --trigger-resource ${{ matrix.bucket }} \
             --trigger-event google.storage.object.finalize
