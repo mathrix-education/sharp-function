@@ -24,11 +24,16 @@
   "homepage": "https://github.com/mathrix-education/sharp-function#readme",
   "dependencies": {
     "@google-cloud/storage": "^4.1.3",
+    "@sentry/integrations": "^5.8.0",
+    "@sentry/node": "^5.9.0",
     "sharp": "^0.23.3"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.23",
     "@types/node": "^12.12.14",
     "@types/sharp": "^0.23.0",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.2.0",
     "typescript": "^3.7.2"
   }
 }

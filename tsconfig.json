@@ -8,7 +8,10 @@
     ],
     "typeRoots": [
       "node_modules/@types"
-    ]
+    ],
+    "inlineSources": true,
+    "inlineSourceMap": true,
+    "sourceRoot": "/"
   },
   "include": [
     "src/index.ts"

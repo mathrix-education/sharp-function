@@ -3,6 +3,49 @@ on:
   push:
     branches: ['*'] # Do not run on tags
 jobs:
+  test:
+    name: Test with jest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Node 10
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - name: Install dependencies
+        run: npm install
+      - name: Run jest
+        run: npx jest --ci --runInBand --coverage
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: coverage
+          path: coverage
+  analyse:
+    name: Analyse with SonarQube
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Download coverage reports
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: coverage
+          path: coverage
+      - name: Setup sonar.properties
+        run: |
+          # Setup version
+          VERSION=$(jq -r .version package.json)
+          echo "sonar.projectVersion=${VERSION}" >> sonar-project.properties
+      - name: Analyse with Sonar Scanner
+        uses: mathrix-education/sonar-scanner@master
+        with:
+          version: 4.2.0.1873
+          scan: true
+          typescript: true
+          args: -Dsonar.host.url=${{ secrets.SONAR_HOST }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
   build:
     name: Build with Typescript
     runs-on: ubuntu-latest
@@ -24,7 +67,7 @@ jobs:
           path: dist
   deploy:
     name: Deploy on Google Cloud Functions
-    needs: [build]
+    needs: [test, analyse, build]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -53,4 +96,5 @@ jobs:
             --region=europe-west1 \
             --runtime=nodejs10 \
             --trigger-resource=${{ matrix.bucket }} \
-            --trigger-event=google.storage.object.finalize
+            --trigger-event=google.storage.object.finalize \
+            --set-env-vars=SENTRY_DSN=${{ secrets.SENTRY_DSN }},BUCKET=${{ matrix.bucket }},RELEASE=${GITHUB_SHA:0:7}
