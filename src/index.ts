@@ -25,7 +25,7 @@ exports['sharp-function'] = async (data, context) => {
   const bucket = storage.bucket(data.bucket);
   const bucketFinalPath = data.id
     .replace(`${bucket.name}/`, '')
-    .replace(/\/[0-9]+/, '')
+    .replace(/\/[0-9]+$/, '')
     .trim();
   const bucketTempPath = `${bucketTempDir}/${bucketFinalPath}`;
   const systemTempPath = `/tmp/${basename(bucketFinalPath)}`;
