@@ -16,7 +16,7 @@ jobs:
       - name: Compile with TypeScript compiler
         run:
           npm install
-          npx tsc
+          npm run build
           cp package.json dist/package.json
       - name: Upload build artifact
         uses: actions/upload-artifact@v1.0.0
