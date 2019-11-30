@@ -12,6 +12,7 @@ export const EXIT_TEMPORARY = 1 << 0;
 export const EXIT_CONTENT_TYPE = 1 << 1;
 export const EXIT_FILE_ERROR = 1 << 2;
 export const EXIT_ALREADY_SHARPED = 1 << 3;
+export const EXIT_DOWNLOAD_ERROR = 1 << 4;
 
 /**
  * Configuration
@@ -69,7 +70,7 @@ const sharpFunction = async (data) => {
   try {
     file = bucket.file(bucketFinalPath);
   } catch (e) {
-    console.error(e);
+    console.log(`Error while retrieving ${bucketFinalPath}, ignoring.`);
     return EXIT_FILE_ERROR;
   }
 
@@ -82,7 +83,13 @@ const sharpFunction = async (data) => {
   }
 
   // Download file
-  await bucket.file(bucketFinalPath).download({ destination: systemTempPath });
+  try {
+    await bucket.file(bucketFinalPath).download({ destination: systemTempPath });
+  } catch (e) {
+    console.log(`Error while downloading ${bucketFinalPath}, ignoring.`);
+    return EXIT_DOWNLOAD_ERROR;
+  }
+
   console.log(`Downloaded ${bucketFinalPath} to ${systemTempPath}`);
 
   // Optimize it
