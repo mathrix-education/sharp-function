@@ -8,6 +8,7 @@ import sharp = require('sharp');
 /**
  * Exit constants
  */
+export const EXIT_SUCCESS = 0;
 export const EXIT_TEMPORARY = 1 << 0;
 export const EXIT_CONTENT_TYPE = 1 << 1;
 export const EXIT_FILE_ERROR = 1 << 2;
@@ -46,7 +47,7 @@ if (process.env.SENTRY_DSN) {
   });
 }
 
-const sharpFunction = async (data) => {
+const sharpFunction = async (data): Promise<number> => {
   if (data.id.includes(`/${config.bucketTempDir}/`)) {
     console.log(`Event ${data.id} is a temporary file, ignoring.`);
     return EXIT_TEMPORARY;
@@ -77,7 +78,7 @@ const sharpFunction = async (data) => {
   // Assert not sharped
   const [metadata] = await file.getMetadata();
 
-  if (metadata.hasOwnProperty('metadata') && metadata.metadata.sharped) {
+  if (metadata?.metadata?.sharped) {
     console.log(`File ${bucketFinalPath} has already been sharped, ignoring.`);
     return EXIT_ALREADY_SHARPED;
   }
@@ -112,9 +113,10 @@ const sharpFunction = async (data) => {
   // Move file to its final destination
   await bucket.file(bucketTempPath).move(bucketFinalPath);
   console.log(`Moved ${bucketTempPath} to ${bucketFinalPath}`);
+  return EXIT_SUCCESS;
 };
 
-exports['sharp-function'] = async (data) => {
+exports['sharp-function'] = async (data): Promise<number> => {
   try {
     return await sharpFunction(data);
   } catch (error) {

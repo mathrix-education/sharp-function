@@ -3,6 +3,20 @@ on:
   push:
     branches: ['*'] # Do not run on tags
 jobs:
+  lint:
+    name: List with eslint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Node 10
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - name: Install dependencies
+        run: npm install
+      - name: Lint with eslint
+        run: npx eslint "src/**/*.ts"
   test:
     name: Test with jest
     runs-on: ubuntu-latest
