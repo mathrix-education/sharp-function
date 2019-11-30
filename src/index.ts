@@ -11,7 +11,7 @@ const mimes = [
 ];
 const bucketTempDir = 'tmp-sharp';
 
-exports['sharp-function'] = async (data, context) => {
+exports['sharp-function'] = async (data) => {
   if (data.id.includes(`/${bucketTempDir}/`)) {
     console.log(`Event ${data.id} is a temporary file, ignoring`);
     return;
@@ -30,28 +30,16 @@ exports['sharp-function'] = async (data, context) => {
   const bucketTempPath = `${bucketTempDir}/${bucketFinalPath}`;
   const systemTempPath = `/tmp/${basename(bucketFinalPath)}`;
 
-  const file = bucket.file(bucketFinalPath);
+  // Retrieve file
+  let file;
+  try {
+    file = bucket.file(bucketFinalPath);
+  } catch (e) {
+    return;
+  }
 
   // Assert not sharped
-  let error;
-  let attemptsLeft = 5;
-  let metadata: any = {};
-
-  do {
-    error = false;
-
-    try {
-      [metadata] = await file.getMetadata();
-    } catch (e) {
-      await (new Promise(resolve => setTimeout(resolve, 500))); // sleep for 500ms
-      error = true;
-      attemptsLeft--;
-
-      if (attemptsLeft == 0) {
-        throw e;
-      }
-    }
-  } while (error && attemptsLeft > 0);
+  const [metadata] = await file.getMetadata();
 
   if (metadata.hasOwnProperty('metadata') && metadata.metadata.sharped) {
     console.log(`File ${bucketFinalPath} has already been sharped`);
