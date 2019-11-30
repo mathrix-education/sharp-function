@@ -43,5 +43,5 @@ jobs:
           gcloud functions deploy sharp-function \
             --region=europe-west1 \
             --runtime nodejs10 \
-            --trigger-resource dev.cdn.mathrix.fr \
+            --trigger-resource dev.cdn.mathrixdrive.fr \
             --trigger-event google.storage.object.finalize

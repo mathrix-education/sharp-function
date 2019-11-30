@@ -1,6 +1,6 @@
 import { Storage } from '@google-cloud/storage';
-import { readFileSync, writeFileSync } from 'fs';
-import { basename, resolve } from 'path';
+import { readFileSync } from 'fs';
+import { basename } from 'path';
 import sharp = require('sharp');
 
 const mimes = [
@@ -11,7 +11,9 @@ const mimes = [
 ];
 
 exports['sharp-function'] = async (data, context) => {
-  if (!mimes.includes(data.contentType)) {
+  if (data.id.includes('/tmp/')) {
+    console.log(`Event ${data.id} is a temporary file, ignoring`);
+  } else if (!mimes.includes(data.contentType)) {
     console.log(`Event ${data.id} has ${data.contentType} content-type, ignoring.`);
     return;
   }
@@ -19,34 +21,39 @@ exports['sharp-function'] = async (data, context) => {
   // Initialize variables
   const storage = new Storage();
   const bucket = storage.bucket(data.bucket);
-  const bucketFilePath = 'gs://' + data.id.replace(/\/[0-9]+/, '');
-  const bucketFlagPath = `${bucketFilePath}.flag`;
-  const tempFilePath = resolve('/tmp', basename(bucketFilePath));
-  const tempFlagPath = `${tempFilePath}.flag`;
+  const bucketFinalPath = data.id
+    .replace(`${bucket.name}/`, '')
+    .replace(/\/[0-9]+/, '')
+    .trim();
+  const bucketTempPath = `tmp/${bucketFinalPath}`;
+  const systemTempPath = `tmp/${basename(bucketFinalPath)}`;
 
-  if (bucket.file(bucketFlagPath).exists()) {
-    console.log('Found flag, deleting.');
-    return await bucket.file(bucketFlagPath).delete();
+  const file = bucket.file(bucketFinalPath);
+
+  // Assert not sharped
+  const metadata = (await file.getMetadata())[0].metadata;
+  if (metadata.sharped) {
+    console.log(`File ${bucketFinalPath} has already been sharped`);
+    return;
   }
 
   // Download file
-  await bucket.file(bucketFilePath).download({ destination: tempFilePath });
+  await bucket.file(bucketFinalPath).download({ destination: systemTempPath });
 
   // Optimize it
-  await sharp(readFileSync(tempFilePath))
+  await sharp(readFileSync(systemTempPath))
     .withMetadata()
-    .toFile(tempFilePath);
+    .toFile(systemTempPath);
 
-  // Write flag and upload it
-  writeFileSync(tempFlagPath, 'flag');
-  await bucket.upload(tempFlagPath, {
-    destination: bucketFlagPath,
+  // Upload file to temporary destination
+  await bucket.upload(systemTempPath, {
+    destination: bucketTempPath,
     gzip: true,
   });
 
-  // Upload file
-  await bucket.upload(tempFilePath, {
-    destination: bucketFilePath,
-    gzip: true,
-  });
+  // Set sharped metadata
+  await bucket.file(bucketTempPath).setMetadata({ sharped: true });
+
+  // Move file to its final destination
+  await bucket.file(bucketTempPath).move(bucketFinalPath);
 };
