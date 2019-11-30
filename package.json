@@ -1,0 +1,33 @@
+{
+  "name": "@mathrix-education/sharp-function",
+  "version": "0.1.0",
+  "description": "Compress images using sharp",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/mathrix-education/sharp-function.git"
+  },
+  "keywords": [
+    "functions",
+    "sharp",
+    "google-cloud-storage"
+  ],
+  "author": "Mathieu Bour <mathieu@mathrix.fr>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mathrix-education/sharp-function/issues"
+  },
+  "homepage": "https://github.com/mathrix-education/sharp-function#readme",
+  "dependencies": {
+    "@google-cloud/storage": "^4.1.3",
+    "sharp": "^0.23.3"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.14",
+    "typescript": "^3.7.2"
+  }
+}

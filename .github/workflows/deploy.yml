@@ -1,0 +1,44 @@
+name: Deploy
+job:
+  build:
+    name: Build with Typescript
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Node 10
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+      - name: Compile with TypeScript compiler
+        run:
+          npm install
+          npx tsc
+          cp package.json dist/package.json
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: build
+          path: dist
+
+  deploy:
+    name: Deploy on Google Cloud Functions
+    depends: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v1.0.0
+        with:
+          name: build
+          path: .
+      - name: Setup Google Cloud SDK
+        uses: mathrix-education/setup-gcloud@0.1.2
+        with:
+          project: ${{ secrets.GCLOUD_PROJECT }}
+          service-account-key: ${{ secrets.GCLOUD_AUTH }}
+      - name: Deploy the Cloud Function
+        run: |
+          gcloud functions deploy helloGCSGeneric \
+            --runtime nodejs10 \
+            --trigger-resource dev.cdn.mathrix.fr \
+            --trigger-event google.storage.object.finalize
