@@ -31,11 +31,11 @@ exports['sharp-function'] = async (data, context) => {
   const file = bucket.file(bucketFinalPath);
 
   // Assert not sharped
-  const metadata = (await file.getMetadata())[0].metadata;
+  const [metadata] = await file.getMetadata();
 
   console.log('Metadata', metadata);
 
-  if (metadata.hasOwnProperty('sharped') && metadata.sharped) {
+  if (metadata.hasOwnProperty('metadata') && metadata.metadata.sharped) {
     console.log(`File ${bucketFinalPath} has already been sharped`);
     return;
   }
