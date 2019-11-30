@@ -32,28 +32,36 @@ exports['sharp-function'] = async (data, context) => {
 
   // Assert not sharped
   const metadata = (await file.getMetadata())[0].metadata;
-  if (metadata.sharped) {
+
+  console.log('Metadata', metadata);
+
+  if (metadata.hasOwnProperty('sharped') && metadata.sharped) {
     console.log(`File ${bucketFinalPath} has already been sharped`);
     return;
   }
 
   // Download file
   await bucket.file(bucketFinalPath).download({ destination: systemTempPath });
+  console.log(`Downloaded ${bucketFinalPath} to ${systemTempPath}`);
 
   // Optimize it
   await sharp(readFileSync(systemTempPath))
     .withMetadata()
     .toFile(systemTempPath);
+  console.log(`Sharped ${systemTempPath}`);
 
   // Upload file to temporary destination
   await bucket.upload(systemTempPath, {
     destination: bucketTempPath,
     gzip: true,
   });
+  console.log(`Uploaded ${systemTempPath} to ${bucketTempPath}`);
 
   // Set sharped metadata
   await bucket.file(bucketTempPath).setMetadata({ sharped: true });
+  console.log(`Added metadata to ${bucketTempPath}`);
 
   // Move file to its final destination
   await bucket.file(bucketTempPath).move(bucketFinalPath);
+  console.log(`Moved ${bucketTempPath} to ${bucketFinalPath}`);
 };
