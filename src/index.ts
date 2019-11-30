@@ -9,9 +9,10 @@ const mimes = [
   'image/tiff',
   'image/png',
 ];
+const bucketTempDir = 'tmp-sharp';
 
 exports['sharp-function'] = async (data, context) => {
-  if (data.id.includes('/tmp/')) {
+  if (data.id.includes(`/${bucketTempDir}/`)) {
     console.log(`Event ${data.id} is a temporary file, ignoring`);
     return;
   } else if (!mimes.includes(data.contentType)) {
@@ -26,7 +27,7 @@ exports['sharp-function'] = async (data, context) => {
     .replace(`${bucket.name}/`, '')
     .replace(/\/[0-9]+/, '')
     .trim();
-  const bucketTempPath = `tmp/${bucketFinalPath}`;
+  const bucketTempPath = `/${bucketTempDir}/${bucketFinalPath}`;
   const systemTempPath = `/tmp/${basename(bucketFinalPath)}`;
 
   const file = bucket.file(bucketFinalPath);
