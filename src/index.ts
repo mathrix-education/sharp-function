@@ -13,6 +13,7 @@ const mimes = [
 exports['sharp-function'] = async (data, context) => {
   if (data.id.includes('/tmp/')) {
     console.log(`Event ${data.id} is a temporary file, ignoring`);
+    return;
   } else if (!mimes.includes(data.contentType)) {
     console.log(`Event ${data.id} has ${data.contentType} content-type, ignoring.`);
     return;
@@ -32,8 +33,6 @@ exports['sharp-function'] = async (data, context) => {
 
   // Assert not sharped
   const [metadata] = await file.getMetadata();
-
-  console.log('Metadata', metadata);
 
   if (metadata.hasOwnProperty('metadata') && metadata.metadata.sharped) {
     console.log(`File ${bucketFinalPath} has already been sharped`);
