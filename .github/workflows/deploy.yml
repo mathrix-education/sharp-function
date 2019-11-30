@@ -46,7 +46,7 @@ jobs:
           service-account-key: ${{ secrets.GCLOUD_AUTH }}
       - name: Deploy the Cloud Function
         run: |
-          gcloud functions deploy sharp-function \
+          gcloud functions deploy sharp-function-${{ matrix.bucket }} \
             --region=europe-west1 \
             --runtime nodejs10 \
             --trigger-resource ${{ matrix.bucket }} \
