@@ -49,6 +49,7 @@ jobs:
           bucket=$(sed "s|\.|\-|g" <<< "${{ matrix.bucket }}")
           gcloud functions deploy sharp-function-"$bucket" \
             --region=europe-west1 \
-            --runtime nodejs10 \
-            --trigger-resource ${{ matrix.bucket }} \
-            --trigger-event google.storage.object.finalize
+            --runtime=nodejs10 \
+            --entry-point=sharp-function \
+            --trigger-resource=${{ matrix.bucket }} \
+            --trigger-event=google.storage.object.finalize
