@@ -26,7 +26,7 @@ exports['sharp-function'] = async (data, context) => {
     .replace(/\/[0-9]+/, '')
     .trim();
   const bucketTempPath = `tmp/${bucketFinalPath}`;
-  const systemTempPath = `tmp/${basename(bucketFinalPath)}`;
+  const systemTempPath = `/tmp/${basename(bucketFinalPath)}`;
 
   const file = bucket.file(bucketFinalPath);
 
