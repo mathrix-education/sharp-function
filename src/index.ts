@@ -27,20 +27,23 @@ exports['sharp-function'] = async (data, context) => {
     .replace(`${bucket.name}/`, '')
     .replace(/\/[0-9]+/, '')
     .trim();
-  const bucketTempPath = `/${bucketTempDir}/${bucketFinalPath}`;
+  const bucketTempPath = `${bucketTempDir}/${bucketFinalPath}`;
   const systemTempPath = `/tmp/${basename(bucketFinalPath)}`;
 
   const file = bucket.file(bucketFinalPath);
 
   // Assert not sharped
-  let error = false;
+  let error;
   let attemptsLeft = 5;
   let metadata: any = {};
 
   do {
+    error = false;
+
     try {
       [metadata] = await file.getMetadata();
     } catch (e) {
+      await (new Promise(resolve => setTimeout(resolve, 500))); // sleep for 500ms
       error = true;
       attemptsLeft--;
 
