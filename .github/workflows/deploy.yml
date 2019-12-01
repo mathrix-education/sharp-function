@@ -15,8 +15,15 @@ jobs:
           node-version: '10.x'
       - name: Install dependencies
         run: npm install
+      - name: Setup cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Lint with eslint
-        run: npx eslint "src/**/*.ts"
+        run: npm run lint
   test:
     name: Test with jest
     runs-on: ubuntu-latest
@@ -27,6 +34,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '10.x'
+      - name: Setup cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install dependencies
         run: npm install
       - name: Run jest
@@ -70,6 +84,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '10.x'
+      - name: Setup cache
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install dependencies
         run: npm install
       - name: Compile with TypeScript compiler

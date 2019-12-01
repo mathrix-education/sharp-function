@@ -1,9 +1,8 @@
 import * as index from '../src';
 import { EXIT_ALREADY_SHARPED, EXIT_CONTENT_TYPE, EXIT_TEMPORARY } from '../src';
 
-const test = index['sharp-function'];
-
-let storageMock: any = {};
+const testBed = index['sharp-function'];
+const storageMock: any = {};
 
 jest.mock('@google-cloud/storage', () => {
   return {
@@ -17,7 +16,7 @@ describe('index.ts', () => {
       id: 'bucket/tmp-sharp/file.txt/123456',
     };
 
-    expect(await test(payload)).toBe(EXIT_TEMPORARY);
+    expect(await testBed(payload)).toBe(EXIT_TEMPORARY);
   });
 
   it('should return on non-image mime', async () => {
@@ -26,7 +25,7 @@ describe('index.ts', () => {
       contentType: 'plain/text',
     };
 
-    expect(await test(payload)).toBe(EXIT_CONTENT_TYPE);
+    expect(await testBed(payload)).toBe(EXIT_CONTENT_TYPE);
   });
 
   it('should return on positive sharped metadata', async () => {
@@ -46,6 +45,6 @@ describe('index.ts', () => {
       contentType: 'image/png',
     };
 
-    expect(await test(payload)).toBe(EXIT_ALREADY_SHARPED);
+    expect(await testBed(payload)).toBe(EXIT_ALREADY_SHARPED);
   });
 });
