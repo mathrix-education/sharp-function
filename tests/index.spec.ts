@@ -14,6 +14,7 @@ describe('index.ts', () => {
   it('should return on temporary file', async () => {
     const payload = {
       id: 'bucket/tmp-sharp/file.txt/123456',
+      bucket: 'bucket'
     };
 
     expect(await testBed(payload)).toBe(EXIT_TEMPORARY);
@@ -22,6 +23,7 @@ describe('index.ts', () => {
   it('should return on non-image mime', async () => {
     const payload = {
       id: 'bucket/file.txt/123456',
+      bucket: 'bucket',
       contentType: 'plain/text',
     };
 

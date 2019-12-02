@@ -11,9 +11,10 @@ import sharp = require('sharp');
 export const EXIT_SUCCESS = 0;
 export const EXIT_TEMPORARY = 1 << 0;
 export const EXIT_CONTENT_TYPE = 1 << 1;
-export const EXIT_FILE_ERROR = 1 << 2;
-export const EXIT_ALREADY_SHARPED = 1 << 3;
-export const EXIT_DOWNLOAD_ERROR = 1 << 4;
+export const EXIT_METADATA_ERROR = 1 << 2;
+export const EXIT_DOWNLOAD_ERROR = 1 << 3;
+export const EXIT_ALREADY_SHARPED = 1 << 4;
+export const EXIT_UPLOAD_ERROR = 1 << 5;
 
 /**
  * Configuration
@@ -26,6 +27,10 @@ const config = {
     'image/png',
   ],
   bucketTempDir: 'tmp-sharp',
+  blacklist: [
+    'tmp-sharp',
+    'tests',
+  ],
 };
 
 if (process.env.SENTRY_DSN) {
@@ -48,7 +53,14 @@ if (process.env.SENTRY_DSN) {
 }
 
 const sharpFunction = async (data): Promise<number> => {
-  if (data.id.includes(`/${config.bucketTempDir}/`)) {
+  const bucketFinalPath = data.id
+    .replace(`${data.bucket}/`, '')
+    .replace(/\/[0-9]+$/, '')
+    .trim();
+
+  const blacklistRegex = new RegExp('/' + config.blacklist.join('|') + '/');
+
+  if (data.id.match(blacklistRegex)) {
     console.log(`Event ${data.id} is a temporary file, ignoring.`);
     return EXIT_TEMPORARY;
   } else if (!config.mimes.includes(data.contentType)) {
@@ -59,24 +71,21 @@ const sharpFunction = async (data): Promise<number> => {
   // Initialize variables
   const storage = new Storage();
   const bucket = storage.bucket(data.bucket);
-  const bucketFinalPath = data.id
-    .replace(`${bucket.name}/`, '')
-    .replace(/\/[0-9]+$/, '')
-    .trim();
   const bucketTempPath = `${config.bucketTempDir}/${bucketFinalPath}`;
   const systemTempPath = `/tmp/${basename(bucketFinalPath)}`;
 
   // Retrieve file
-  let file;
-  try {
-    file = bucket.file(bucketFinalPath);
-  } catch (e) {
-    console.log(`Error while retrieving ${bucketFinalPath}, ignoring.`);
-    return EXIT_FILE_ERROR;
-  }
+  const file = bucket.file(bucketFinalPath);
 
   // Assert not sharped
-  const [metadata] = await file.getMetadata();
+  let metadata;
+
+  try {
+    [metadata] = await file.getMetadata();
+  } catch (e) {
+    console.log(`Error while retrieving metadata of ${bucketFinalPath}, ignoring.`);
+    return EXIT_METADATA_ERROR;
+  }
 
   if (metadata?.metadata?.sharped) {
     console.log(`File ${bucketFinalPath} has already been sharped, ignoring.`);
@@ -85,7 +94,10 @@ const sharpFunction = async (data): Promise<number> => {
 
   // Download file
   try {
-    await bucket.file(bucketFinalPath).download({ destination: systemTempPath });
+    await bucket.file(bucketFinalPath).download({
+      destination: systemTempPath,
+      validation: false,
+    });
   } catch (e) {
     console.log(`Error while downloading ${bucketFinalPath}, ignoring.`);
     return EXIT_DOWNLOAD_ERROR;
@@ -100,10 +112,17 @@ const sharpFunction = async (data): Promise<number> => {
   console.log(`Sharped ${systemTempPath}`);
 
   // Upload file to temporary destination
-  await bucket.upload(systemTempPath, {
-    destination: bucketTempPath,
-    gzip: true,
-  });
+  try {
+    await bucket.upload(systemTempPath, {
+      destination: bucketTempPath,
+      gzip: true,
+      resumable: false,
+      validation: false,
+    });
+  } catch (e) {
+    console.log(`Error while uploading ${bucketFinalPath}, ignoring.`);
+    return EXIT_UPLOAD_ERROR;
+  }
   console.log(`Uploaded ${systemTempPath} to ${bucketTempPath}`);
 
   // Set sharped metadata
