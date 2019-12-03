@@ -82,6 +82,7 @@ const sharpFunction = async (data): Promise<number> => {
 
   try {
     [metadata] = await file.getMetadata();
+    console.log('Received metadata: ' + JSON.stringify(metadata.metadata));
   } catch (e) {
     console.log(`Error while retrieving metadata of ${bucketFinalPath}, ignoring.`);
     return EXIT_METADATA_ERROR;
