@@ -82,7 +82,10 @@ const sharpFunction = async (data): Promise<number> => {
 
   try {
     [metadata] = await file.getMetadata();
-    console.log('Received metadata: ' + JSON.stringify(metadata.metadata));
+
+    if (metadata?.metadata) {
+      console.log('Received metadata: ' + JSON.stringify(metadata.metadata));
+    }
   } catch (e) {
     console.log(`Error while retrieving metadata of ${bucketFinalPath}, ignoring.`);
     return EXIT_METADATA_ERROR;
@@ -127,7 +130,7 @@ const sharpFunction = async (data): Promise<number> => {
   console.log(`Uploaded ${systemTempPath} to ${bucketTempPath}`);
 
   // Set sharped metadata
-  await bucket.file(bucketTempPath).setMetadata({ sharped: true });
+  await bucket.file(bucketTempPath).setMetadata({ metadata: { sharped: true } });
   console.log(`Added metadata to ${bucketTempPath}`);
 
   // Move file to its final destination
