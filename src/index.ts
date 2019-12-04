@@ -1,7 +1,7 @@
 import { Storage } from '@google-cloud/storage';
 import { RewriteFrames } from '@sentry/integrations';
 import * as Sentry from '@sentry/node';
-import { readFileSync } from 'fs';
+import { readFileSync, unlinkSync } from 'fs';
 import { basename } from 'path';
 import sharp = require('sharp');
 
@@ -126,6 +126,8 @@ const sharpFunction = async (data): Promise<number> => {
   } catch (e) {
     console.log(`Error while uploading ${bucketFinalPath}, ignoring.`);
     return EXIT_UPLOAD_ERROR;
+  } finally {
+    unlinkSync(systemTempPath);
   }
   console.log(`Uploaded ${systemTempPath} to ${bucketTempPath}`);
 
